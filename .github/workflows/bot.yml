@@ -19,7 +19,7 @@ jobs:
       - name: Run bot
         run: python bot.py
         env:
-          API_KEY: ${{ secrets.API_KEY }}
-          API_SECRET: ${{ secrets.API_SECRET }}
-          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
-          ACCESS_SECRET: ${{ secrets.ACCESS_SECRET }}
+          API_KEY: ${{ NoCNgnfgYXHZsg8IkkQ7VLLuY }}
+          API_SECRET: ${{ HVtcHFI2XbjRVWDbZEdyzU1svofvSbV494gvLuwelhsoKJX4rG }}
+          ACCESS_TOKEN: ${{ 2045960105196244992-H1bDhDmNxcoXdveFTJQMcp4ODN6W4t }}
+          ACCESS_SECRET: ${{ O7oGmHXil0HvzdFdn6aKk6yw99LsmCnV4tNUlZwLVYnwg }}
