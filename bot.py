@@ -8,31 +8,47 @@ with sync_playwright() as p:
     browser = p.chromium.launch(headless=True)
     page = browser.new_page()
 
-    # 1. Login
-    page.goto("https://twitter.com/login")
+    print("Abriendo login...")
+    page.goto("https://twitter.com/login", timeout=60000)
 
-    page.fill('input[name="text"]', USERNAME)
-    page.click('text=Next')
+    # Esperar a que cargue el input
+    page.wait_for_selector('input', timeout=60000)
 
-    page.wait_for_timeout(2000)
-
-    # a veces pide username otra vez
-    if page.locator('input[name="text"]').count() > 0:
-        page.fill('input[name="text"]', USERNAME)
-        page.click('text=Next')
-
-    page.fill('input[name="password"]', PASSWORD)
-    page.click('text=Log in')
+    print("Escribiendo usuario...")
+    page.get_by_placeholder("Phone, email, or username").fill(USERNAME)
+    page.keyboard.press("Enter")
 
     page.wait_for_timeout(5000)
 
-    # 2. Ir a tweet
-    page.goto("https://twitter.com/compose/tweet")
+    # Por si pide username otra vez
+    if page.locator('input').count() > 0:
+        try:
+            page.get_by_placeholder("Phone, email, or username").fill(USERNAME)
+            page.keyboard.press("Enter")
+            page.wait_for_timeout(5000)
+        except:
+            pass
 
+    print("Escribiendo contraseña...")
+    page.get_by_label("Password").fill(PASSWORD)
+    page.keyboard.press("Enter")
+
+    page.wait_for_timeout(8000)
+
+    print("Yendo a escribir tweet...")
+    page.goto("https://twitter.com/compose/tweet", timeout=60000)
+
+    page.wait_for_selector('div[data-testid="tweetTextarea_0"]', timeout=60000)
+
+    print("Escribiendo tweet...")
     page.fill('div[data-testid="tweetTextarea_0"]', "SÍ.")
+
+    page.wait_for_timeout(2000)
+
+    print("Enviando tweet...")
     page.click('div[data-testid="tweetButtonInline"]')
 
-    page.wait_for_timeout(3000)
+    page.wait_for_timeout(5000)
 
-    print("Tweet enviado")
+    print("✅ Tweet enviado")
     browser.close()
