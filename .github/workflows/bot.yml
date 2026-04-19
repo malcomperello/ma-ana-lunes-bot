@@ -21,5 +21,5 @@ jobs:
         env:
           API_KEY: ${{ NoCNgnfgYXHZsg8IkkQ7VLLuY }}
           API_SECRET: ${{ HVtcHFI2XbjRVWDbZEdyzU1svofvSbV494gvLuwelhsoKJX4rG }}
-          ACCESS_TOKEN: ${{ 2045960105196244992-H1bDhDmNxcoXdveFTJQMcp4ODN6W4t }}
-          ACCESS_SECRET: ${{ O7oGmHXil0HvzdFdn6aKk6yw99LsmCnV4tNUlZwLVYnwg }}
+          ACCESS_TOKEN: ${{ 2045960105196244992-MVWrrLNJ9TFn6jPLPtIPpItF90YjUN }}
+          ACCESS_SECRET: ${{ kDNeCdGSNrpz24tIQhPVtUSwk940gGe9Yu1gfPHI5K4G1 }}
