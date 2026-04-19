@@ -18,8 +18,8 @@ jobs:
         run: pip install tweepy
       - name: Run bot
         run: python bot.py
-        env:
-          API_KEY: ${{ NoCNgnfgYXHZsg8IkkQ7VLLuY }}
-          API_SECRET: ${{ HVtcHFI2XbjRVWDbZEdyzU1svofvSbV494gvLuwelhsoKJX4rG }}
-          ACCESS_TOKEN: ${{ 2045960105196244992-MVWrrLNJ9TFn6jPLPtIPpItF90YjUN }}
-          ACCESS_SECRET: ${{ kDNeCdGSNrpz24tIQhPVtUSwk940gGe9Yu1gfPHI5K4G1 }}
+env:
+  API_KEY: ${{ secrets.API_KEY }}
+  API_SECRET: ${{ secrets.API_SECRET }}
+  ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+  ACCESS_SECRET: ${{ secrets.ACCESS_SECRET }}
