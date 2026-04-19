@@ -1,52 +1,39 @@
 import os
+import json
 from playwright.sync_api import sync_playwright
 
 USERNAME = os.environ["X_USERNAME"]
 PASSWORD = os.environ["X_PASSWORD"]
 
-with sync_playwright() as p:
-    browser = p.chromium.launch(
-        headless=True,
-        args=["--no-sandbox", "--disable-dev-shm-usage"]
-    )
-    page = browser.new_page()
+STATE_FILE = "state.json"
 
-    print("Abriendo login...")
 
-    # Mejor esperar carga real del DOM (Better wait for DOM load)
+def login_if_needed(page, context):
+    print("🔐 Comprobando login...")
+
+    page.goto("https://twitter.com/home", wait_until="domcontentloaded", timeout=60000)
+
+    # Si ya estamos logueados, hay timeline
+    if page.locator('div[data-testid="primaryColumn"]').count() > 0:
+        print("✅ Ya logueado (sesión válida)")
+        return
+
+    print("❌ No hay sesión, haciendo login...")
+
     page.goto("https://twitter.com/login", wait_until="domcontentloaded", timeout=60000)
 
-    # =========================
-    # LOGIN - USERNAME
-    # =========================
-    print("Escribiendo usuario...")
+    # Debug por si X bloquea
+    print("URL login:", page.url)
 
-    username_input = page.locator('input[autocomplete="username"]')
-    username_input.wait_for(state="visible", timeout=60000)
+    # USERNAME STEP
+    username_input = page.locator('input').first
+    username_input.wait_for(state="attached", timeout=60000)
     username_input.fill(USERNAME)
     username_input.press("Enter")
 
     page.wait_for_timeout(3000)
 
-    # =========================
-    # LOGIN - POSSIBLE SECOND STEP (fallback)
-    # =========================
-    # (A veces X pide username otra vez o teléfono - Sometimes X asks again)
-
-    try:
-        extra_input = page.locator('input[autocomplete="username"]')
-        if extra_input.count() > 0 and extra_input.is_visible():
-            extra_input.fill(USERNAME)
-            extra_input.press("Enter")
-            page.wait_for_timeout(3000)
-    except:
-        pass
-
-    # =========================
-    # LOGIN - PASSWORD
-    # =========================
-    print("Escribiendo contraseña...")
-
+    # PASSWORD STEP
     password_input = page.locator('input[name="password"]')
     password_input.wait_for(state="visible", timeout=60000)
     password_input.fill(PASSWORD)
@@ -54,36 +41,60 @@ with sync_playwright() as p:
 
     page.wait_for_timeout(8000)
 
-    # =========================
-    # GO TO TWEET COMPOSER
-    # =========================
-    print("Yendo a escribir tweet...")
+    # Guardar sesión
+    context.storage_state(path=STATE_FILE)
+    print("💾 Sesión guardada")
+
+
+def tweet(page):
+    print("🐦 Abriendo composer...")
 
     page.goto("https://twitter.com/compose/tweet", wait_until="domcontentloaded", timeout=60000)
 
-    tweet_box = page.locator('div[data-testid="tweetTextarea_0"]')
-    tweet_box.wait_for(state="visible", timeout=60000)
+    box = page.locator('div[data-testid="tweetTextarea_0"]')
+    box.wait_for(state="visible", timeout=60000)
 
-    # =========================
-    # WRITE TWEET
-    # =========================
-    print("Escribiendo tweet...")
-
-    tweet_box.click()
-    tweet_box.fill("SÍ.")
+    box.click()
+    box.fill("SÍ.")
 
     page.wait_for_timeout(2000)
 
-    # =========================
-    # SEND TWEET
-    # =========================
-    print("Enviando tweet...")
+    print("📤 Enviando tweet...")
 
-    send_button = page.locator('div[data-testid="tweetButtonInline"]')
-    send_button.wait_for(state="visible", timeout=60000)
-    send_button.click()
+    page.locator('div[data-testid="tweetButtonInline"]').click()
 
     page.wait_for_timeout(5000)
 
     print("✅ Tweet enviado")
-    browser.close()
+
+
+with sync_playwright() as p:
+    browser = p.chromium.launch(
+        headless=True,
+        args=[
+            "--no-sandbox",
+            "--disable-dev-shm-usage",
+            "--disable-blink-features=AutomationControlled"
+        ]
+    )
+
+    # Reusar sesión si existe
+    if os.path.exists(STATE_FILE):
+        context = browser.new_context(storage_state=STATE_FILE)
+    else:
+        context = browser.new_context()
+
+    page = context.new_page()
+
+    try:
+        login_if_needed(page, context)
+        tweet(page)
+
+    except Exception as e:
+        print("❌ ERROR:", str(e))
+        page.screenshot(path="error.png")
+        print("📸 Screenshot guardado: error.png")
+
+    finally:
+        context.close()
+        browser.close()
